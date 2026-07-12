@@ -6,7 +6,7 @@
 
     <groupId>io.skycloak.keycloak</groupId>
     <artifactId>keycloak-turnstile-spi</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
     <packaging>jar</packaging>
 
     <name>Keycloak Turnstile SPI</name>
