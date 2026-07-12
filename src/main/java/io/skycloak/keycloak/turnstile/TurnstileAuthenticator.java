@@ -59,6 +59,7 @@ public class TurnstileAuthenticator implements Authenticator {
 
         VerificationResult result = verifier.verify(token, hostname, remoteIp);
         count(context, result);
+        logOutcome(context, result, hostname, remoteIp, token);
 
         switch (result.outcome()) {
             case PASS -> context.success();
@@ -82,6 +83,27 @@ public class TurnstileAuthenticator implements Authenticator {
     private static String formToken(AuthenticationFlowContext context) {
         MultivaluedMap<String, String> form = context.getHttpRequest().getDecodedFormParameters();
         return form == null ? null : form.getFirst(TOKEN_FORM_FIELD);
+    }
+
+    // Emit one structured telemetry line per terminal verification outcome. Only
+    // a submitted token is terminal; the initial no-token entry just shows the
+    // challenge and is deliberately not recorded.
+    private static void logOutcome(AuthenticationFlowContext context, VerificationResult result,
+            String hostname, String remoteIp, String token) {
+        if (token == null || token.isBlank()) {
+            return;
+        }
+        try {
+            log.info(VerificationLog.line(
+                    result.outcome().name().toLowerCase(),
+                    context.getRealm().getName(),
+                    remoteIp,
+                    hostname,
+                    result.reason()));
+        } catch (Throwable t) {
+            // Telemetry must never affect the login path.
+            log.debugf("Turnstile outcome log failed: %s", t.getMessage());
+        }
     }
 
     private static void count(AuthenticationFlowContext context, VerificationResult result) {
