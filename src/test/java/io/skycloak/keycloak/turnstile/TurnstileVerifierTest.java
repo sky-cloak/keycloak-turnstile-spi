@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TurnstileVerifierTest {
 
@@ -57,6 +58,17 @@ class TurnstileVerifierTest {
         VerificationResult result = verifier().verify("tok-abc", "login.customer.example", "203.0.113.7");
 
         assertEquals(VerificationResult.Outcome.PASS, result.outcome());
+    }
+
+    @Test
+    void sendsTheGivenAddressAsRemoteIpAndNothingElse() {
+        respondWith(200, "{\"success\": true, \"hostname\": \"login.customer.example\"}");
+
+        verifier().verify("tok-abc", "login.customer.example", "203.0.113.7");
+
+        String body = lastRequestBody.get();
+        assertTrue(body.contains("&remoteip=203.0.113.7"), body);
+        assertEquals(1, body.split("remoteip=", -1).length - 1, body);
     }
 
     @Test

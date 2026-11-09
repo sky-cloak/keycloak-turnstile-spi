@@ -83,6 +83,15 @@ standalone challenge page after submitting the form. Both are enforced server-si
 `pass`, `reject`, and `fail_open`. Alert on `fail_open`: it means logins are proceeding
 without a verdict because Cloudflare could not be reached.
 
+## Client address
+
+The `remoteip` sent to Cloudflare siteverify is the address Keycloak resolved for the
+connection (`AuthenticationFlowContext.getConnection().getRemoteAddr()`). The extension
+never reads `X-Forwarded-For`, `CF-Connecting-IP`, `X-Real-IP` or any other request header
+itself, so a client cannot choose it by sending a header. Keycloak decides which proxy
+headers it honours through its own `proxy-headers` and trusted-proxy settings; configure
+those so only your gateway can set the forwarded address.
+
 ## Build
 
 ```bash
